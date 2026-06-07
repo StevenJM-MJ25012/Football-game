@@ -21,7 +21,7 @@ const COUNTRIES = [
 
 let control = {
   socket: null,
-  phase: "draw", // draw, tournament
+  phase: "draw",
   selectedCountries: [],
   tournament: {
     teams: [],
@@ -33,13 +33,11 @@ let control = {
   }
 };
 
-// ─── INICIALIZAR ───────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   buildCountriesGrid();
   connectWebSocket();
 });
 
-// ─── WEBSOCKET ─────────────────────────────────────────────────
 function connectWebSocket() {
   control.socket = new WebSocket(WS_URL);
   control.socket.onopen = () => {
@@ -59,11 +57,9 @@ function sendMessage(msg) {
 }
 
 function handleControlMessage(msg) {
-  // Respuestas del servidor
   console.log("Mensaje recibido:", msg);
 }
 
-// ─── FASE 1: SORTEO ─────────────────────────────────────────────
 function buildCountriesGrid() {
   const grid = document.getElementById("countries-grid");
   grid.innerHTML = "";
@@ -107,19 +103,15 @@ function updateCountriesDisplay() {
 }
 
 function startDraw() {
-  // Sorteo animado (simulado)
   const shuffled = [...COUNTRIES].sort(() => Math.random() - 0.5).slice(0, 16);
   control.selectedCountries = shuffled;
   updateCountriesDisplay();
-  
-  // Animación visual
   alert("🎲 Sorteo completado. Se seleccionaron 16 países aleatoriamente.");
 }
 
 function confirmDraw() {
   if (control.selectedCountries.length !== 16) return;
   
-  // Crear parejas
   const teams = [...control.selectedCountries].sort(() => Math.random() - 0.5);
   control.tournament.matches = [];
   
@@ -129,20 +121,18 @@ function confirmDraw() {
       teamB: teams[i + 1],
       scoreA: 0,
       scoreB: 0,
-      status: "pending" // pending, playing, finished
+      status: "pending"
     });
   }
   
   control.tournament.teams = teams;
   control.phase = "tournament";
   
-  // Mostrar torneo
   document.getElementById("draw-section").style.display = "none";
   document.getElementById("tournament-section").style.display = "flex";
   
   buildMatchesList();
   
-  // Enviar al servidor
   sendMessage({
     type: "tournament_start",
     teams: control.tournament.teams,
@@ -150,7 +140,6 @@ function confirmDraw() {
   });
 }
 
-// ─── FASE 2: TORNEO ─────────────────────────────────────────────
 function buildMatchesList() {
   const list = document.getElementById("matches-list");
   list.innerHTML = "";
@@ -192,7 +181,6 @@ function selectMatch(idx) {
   updateCurrentMatch();
   buildMatchesList();
   
-  // Enviar al servidor
   sendMessage({
     type: "match_selected",
     matchIdx: idx,

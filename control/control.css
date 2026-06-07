@@ -1,0 +1,243 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #0a0a1a;
+  color: #fff;
+  overflow: hidden;
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background: #1a1a2e; padding: 12px 20px;
+  border-bottom: 3px solid #ff6b00;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+}
+
+h1 { color: #ff6b00; font-size: 20px; letter-spacing: 2px; }
+
+.container {
+  flex: 1; display: flex; gap: 16px; padding: 20px;
+  overflow: auto;
+}
+
+/* ─── FASE 1: SORTEO ─── */
+#draw-section {
+  flex: 1; display: flex; flex-direction: column;
+  background: rgba(0,0,0,0.6); border-radius: 12px;
+  border: 2px solid #ff6b00; padding: 20px;
+}
+
+#draw-section h2 {
+  color: #ff8c00; margin-bottom: 16px; font-size: 16px;
+}
+
+.countries-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 10px; flex: 1; overflow-y: auto; margin-bottom: 16px;
+}
+
+.country-card {
+  background: linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,140,0,0.1));
+  border: 2px solid #ff6b00; border-radius: 8px;
+  padding: 12px; text-align: center;
+  cursor: pointer; transition: all 0.3s;
+  font-size: 28px; line-height: 1.2;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+
+.country-card:hover {
+  background: linear-gradient(135deg, rgba(255,107,0,0.4), rgba(255,140,0,0.2));
+  transform: scale(1.05);
+}
+
+.country-card.selected {
+  background: #ff6b00; border-color: #ffd700;
+  box-shadow: 0 0 20px #ff6b00;
+}
+
+.country-name { font-size: 12px; font-weight: 700; }
+
+.draw-buttons {
+  display: flex; gap: 10px;
+}
+
+.btn {
+  flex: 1; padding: 12px; border: none; border-radius: 8px;
+  font-weight: 700; cursor: pointer; transition: all 0.3s;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background: #ff6b00; color: #fff;
+}
+
+.btn-primary:hover {
+  background: #ff8c00; box-shadow: 0 0 20px rgba(255,107,0,0.6);
+}
+
+.btn-primary:disabled {
+  background: #666; cursor: not-allowed; opacity: 0.5;
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.1); color: #fff; border: 1px solid #ff6b00;
+}
+
+.btn-secondary:hover {
+  background: rgba(255,107,0,0.2);
+}
+
+/* ─── FASE 2: TORNEO ─── */
+#tournament-section {
+  display: none; flex: 1; flex-direction: column;
+}
+
+.tournament-content {
+  flex: 1; display: flex; gap: 16px;
+}
+
+.matches-list {
+  flex: 1; background: rgba(0,0,0,0.6); border-radius: 12px;
+  border: 2px solid #ff6b00; padding: 16px;
+  display: flex; flex-direction: column;
+}
+
+.matches-list h3 {
+  color: #ff8c00; margin-bottom: 12px; font-size: 14px;
+}
+
+.matches {
+  flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+}
+
+.match-item {
+  background: rgba(255,107,0,0.1); border: 2px solid #ff6b00;
+  border-radius: 8px; padding: 12px; cursor: pointer;
+  transition: all 0.3s;
+}
+
+.match-item:hover {
+  background: rgba(255,107,0,0.2); transform: translateX(5px);
+}
+
+.match-item.active {
+  background: #ff6b00; box-shadow: 0 0 20px #ff6b00;
+}
+
+.match-item.finished {
+  background: rgba(100,200,100,0.1); border-color: #4c4;
+}
+
+.match-teams {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 6px;
+}
+
+.team-vs {
+  font-size: 28px; font-weight: 700; margin: 0 8px;
+}
+
+.match-status {
+  font-size: 10px; color: rgba(255,255,255,0.6);
+}
+
+.match-status.finished {
+  color: #4c4; font-weight: 700;
+}
+
+/* ─── PANEL ACTUAL ─── */
+.current-match {
+  flex: 1; background: rgba(0,0,0,0.6); border-radius: 12px;
+  border: 2px solid #ff6b00; padding: 16px;
+  display: flex; flex-direction: column;
+}
+
+.current-match h3 {
+  color: #ff8c00; margin-bottom: 12px; font-size: 14px;
+}
+
+.match-display {
+  flex: 1; display: flex; flex-direction: column; justify-content: space-around;
+  background: rgba(0,0,0,0.4); border-radius: 8px; padding: 16px;
+  margin-bottom: 12px;
+}
+
+.team-display {
+  display: flex; align-items: center; gap: 16px; font-size: 20px; font-weight: 700;
+}
+
+.team-display.right { flex-direction: row-reverse; }
+
+.team-display-flag { font-size: 40px; }
+.team-display-name { flex: 1; }
+
+.vs-display {
+  text-align: center; color: #ff8c00; font-size: 24px; font-weight: 900;
+}
+
+.match-controls {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-bottom: 12px;
+}
+
+.score-control {
+  background: rgba(255,107,0,0.1); border: 2px solid #ff6b00;
+  border-radius: 8px; padding: 12px; text-align: center;
+}
+
+.score-control h4 { font-size: 12px; color: #ff8c00; margin-bottom: 8px; }
+
+.score-buttons {
+  display: flex; gap: 6px;
+}
+
+.score-btn {
+  flex: 1; padding: 8px; background: #ff6b00; color: #fff;
+  border: none; border-radius: 4px; cursor: pointer; font-weight: 700;
+  transition: all 0.3s;
+}
+
+.score-btn:hover { background: #ff8c00; }
+
+.match-status-display {
+  text-align: center; color: rgba(255,255,255,0.7); font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.action-buttons {
+  display: flex; gap: 8px;
+}
+
+.btn-start {
+  flex: 1; padding: 10px; background: #4c4; color: #000;
+  border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+}
+
+.btn-start:hover { background: #6f6; }
+
+.btn-finish {
+  flex: 1; padding: 10px; background: #f44; color: #fff;
+  border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+}
+
+.btn-finish:hover { background: #f66; }
+
+.btn-next {
+  flex: 1; padding: 10px; background: #ff6b00; color: #fff;
+  border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+}
+
+.btn-next:hover { background: #ff8c00; }
+
+.message {
+  background: rgba(255,107,0,0.2); border: 2px solid #ff6b00;
+  border-radius: 8px; padding: 12px; margin-bottom: 12px;
+  color: #ff8c00; font-size: 12px; font-weight: 700;
+}
+
+.hidden { display: none !important; }

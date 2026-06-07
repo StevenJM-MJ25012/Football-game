@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel de Control - Torneo de Fútbol</title>
+<link rel="stylesheet" href="control.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🏆 PANEL DE CONTROL - TORNEO</h1>
+  </header>
+
+  <div class="container">
+    <!-- FASE 1: SORTEO -->
+    <div id="draw-section">
+      <h2>📋 SORTEO DE PAÍSES (16 avos)</h2>
+      <div class="countries-grid" id="countries-grid"></div>
+      <div class="draw-buttons">
+        <button class="btn btn-primary" onclick="startDraw()">🎲 Iniciar Sorteo</button>
+        <button class="btn btn-secondary" onclick="confirmDraw()" id="btn-confirm">Confirmar Parejas</button>
+      </div>
+    </div>
+
+    <!-- FASE 2: TORNEO -->
+    <div id="tournament-section" style="display: none; flex: 1; flex-direction: column;">
+      <div class="tournament-content">
+        <!-- Lista de partidos -->
+        <div class="matches-list">
+          <h3>📊 PARTIDOS - 16 AVOS</h3>
+          <div class="matches" id="matches-list"></div>
+        </div>
+
+        <!-- Panel actual -->
+        <div class="current-match">
+          <h3>🎮 PARTIDO ACTUAL</h3>
+          <div id="no-match" class="message">Selecciona un partido para empezar</div>
+          
+          <div id="match-content" style="display: none; flex: 1; display: flex; flex-direction: column;">
+            <div class="match-display">
+              <div class="team-display">
+                <div class="team-display-flag" id="current-flag-a">🇦🇷</div>
+                <div>
+                  <div class="team-display-name" id="current-name-a">Argentina</div>
+                  <div style="font-size: 16px; color: #ff8c00;" id="current-score-a">0</div>
+                </div>
+              </div>
+              <div class="vs-display">VS</div>
+              <div class="team-display right">
+                <div class="team-display-flag" id="current-flag-b">🇧🇷</div>
+                <div>
+                  <div class="team-display-name" id="current-name-b">Brasil</div>
+                  <div style="font-size: 16px; color: #ff8c00;" id="current-score-b">0</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="match-controls">
+              <div class="score-control">
+                <h4 id="current-name-a2">Argentina</h4>
+                <div class="score-buttons">
+                  <button class="score-btn" onclick="addGoal('a')">+ GOL</button>
+                  <button class="score-btn" onclick="removeGoal('a')">- GOL</button>
+                </div>
+              </div>
+              <div class="score-control">
+                <h4 id="current-name-b2">Brasil</h4>
+                <div class="score-buttons">
+                  <button class="score-btn" onclick="addGoal('b')">+ GOL</button>
+                  <button class="score-btn" onclick="removeGoal('b')">- GOL</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-buttons">
+              <button class="btn-start" onclick="startMatch()">▶ INICIAR</button>
+              <button class="btn-finish" onclick="finishMatch()">⏹ TERMINAR</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="control.js"></script>
+</body>
+</html>

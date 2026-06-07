@@ -2,718 +2,122 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>TikTok Football Overlay</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-body { background: transparent; overflow: hidden; }
-
-#app {
-  width: 100vw; height: 100vh;
-  display: flex; flex-direction: column; position: relative; overflow: hidden;
-}
-
-/* ─── Gradas ─── */
-#stands {
-  height: 54px;
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-  display: flex; align-items: flex-end; justify-content: center;
-  gap: 0; overflow: hidden; position: relative;
-  border-bottom: 3px solid #0f3460;
-}
-.fan {
-  font-size: 18px; line-height: 1;
-  display: inline-block;
-  animation: fanIdle 2s infinite;
-  animation-delay: var(--delay);
-  transform-origin: bottom center;
-}
-@keyframes fanIdle {
-  0%,100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-3px) rotate(var(--sway)); }
-}
-.fan.celebrate {
-  animation: fanCelebrate 0.4s infinite alternate !important;
-}
-@keyframes fanCelebrate {
-  from { transform: translateY(-8px) scale(1.2) rotate(-10deg); }
-  to   { transform: translateY(0px)  scale(1.0) rotate(10deg); }
-}
-
-/* ─── Top Bar ─── */
-#topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  background: rgba(0,0,0,0.82); padding: 8px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  z-index: 20; position: relative;
-}
-.team-side { display: flex; align-items: center; gap: 10px; }
-.flag { font-size: 28px; }
-.team-name { color: #fff; font-size: 14px; font-weight: 600; }
-.score-box {
-  background: rgba(255,255,255,0.1); border-radius: 8px;
-  padding: 5px 20px; color: #fff; font-size: 26px; font-weight: 700;
-  letter-spacing: 3px; min-width: 80px; text-align: center;
-  transition: background 0.3s;
-}
-.score-box.flash { background: rgba(255,215,0,0.45); }
-#timer-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-#timer-badge {
-  background: rgba(255,255,255,0.13); border-radius: 20px;
-  padding: 4px 16px; color: #fff; font-size: 13px; font-weight: 600;
-}
-#fever-badge {
-  display: none; background: #e63; border-radius: 20px;
-  padding: 3px 12px; color: #fff; font-size: 12px; font-weight: 700;
-  animation: pulse 0.6s infinite alternate;
-}
-#fever-badge.active { display: block; }
-@keyframes pulse { from { opacity:1; } to { opacity:0.4; } }
-
-/* ─── Campo ─── */
-#field {
-  flex: 1; position: relative; overflow: hidden;
-  background: #2d8a2d;
-  background-image:
-    repeating-linear-gradient(90deg,
-      transparent 0px, transparent 79px,
-      rgba(255,255,255,0.06) 79px, rgba(255,255,255,0.06) 80px),
-    repeating-linear-gradient(0deg,
-      transparent 0px, transparent 79px,
-      rgba(255,255,255,0.06) 79px, rgba(255,255,255,0.06) 80px);
-}
-
-/* Líneas del campo */
-#field-lines {
-  position: absolute; inset: 0; pointer-events: none;
-}
-.fline {
-  position: absolute; background: rgba(255,255,255,0.25);
-}
-#line-center  { top:0; bottom:0; left:50%; width:2px; transform:translateX(-50%); }
-#circle-center {
-  position: absolute; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.25);
-  width: 110px; height: 110px;
-  left: 50%; top: 50%; transform: translate(-50%,-50%);
-}
-#line-top    { left:0; right:0; top:8%; height:2px; }
-#line-bottom { left:0; right:0; bottom:8%; height:2px; }
-
-/* Áreas */
-.penalty-box {
-  position: absolute; top:50%; transform:translateY(-50%);
-  width: 60px; height: 160px;
-  border: 2px solid rgba(255,255,255,0.22);
-  background: rgba(255,255,255,0.03);
-}
-.penalty-box.left  { left:18px; border-left:none; }
-.penalty-box.right { right:18px; border-right:none; }
-
-/* Porterías */
-.goal-wrap {
-  position: absolute; top:50%; transform:translateY(-50%);
-  display: flex; flex-direction: column; align-items: center;
-  z-index: 5;
-}
-.goal-wrap.left  { left:0; }
-.goal-wrap.right { right:0; }
-.goal-post {
-  width: 18px; height: 88px;
-  border: 3px solid rgba(255,255,255,0.7);
-  background: rgba(255,255,255,0.07);
-  position: relative;
-}
-.goal-post.left  { border-left:none; }
-.goal-post.right { border-right:none; }
-.goal-flag {
-  font-size: 18px; position: absolute;
-  top: -22px;
-  animation: flagWave 1.5s infinite alternate ease-in-out;
-}
-.goal-flag.top { top:-22px; }
-.goal-flag.bot { bottom:-22px; }
-@keyframes flagWave {
-  from { transform: rotate(-8deg); }
-  to   { transform: rotate(8deg); }
-}
-/* Red de la portería */
-.goal-net {
-  position: absolute; inset: 0;
-  background-image:
-    repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(255,255,255,0.12) 10px, rgba(255,255,255,0.12) 11px),
-    repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(255,255,255,0.12) 6px, rgba(255,255,255,0.12) 7px);
-}
-
-/* ─── Balón ─── */
-#ball {
-  font-size: 28px; line-height: 1;
-  position: absolute;
-  transition: left 0.5s cubic-bezier(.4,0,.2,1), top 0.5s cubic-bezier(.4,0,.2,1);
-  z-index: 15; user-select: none;
-  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
-}
-#ball.kicked {
-  animation: ballSpin 0.5s linear;
-}
-@keyframes ballSpin {
-  from { transform: rotate(0deg) scale(1.2); }
-  to   { transform: rotate(360deg) scale(1); }
-}
-
-/* ─── Jugadores ─── */
-.player {
-  position: absolute; z-index: 10;
-  display: flex; flex-direction: column; align-items: center; gap: 1px;
-  transition: left 0.6s ease, top 0.6s ease;
-  pointer-events: none;
-}
-.player-body {
-  font-size: 22px; line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-}
-.player-name {
-  font-size: 9px; color: #fff; font-weight: 700;
-  background: rgba(0,0,0,0.55); padding: 1px 4px; border-radius: 3px;
-  white-space: nowrap; max-width: 60px; overflow: hidden; text-overflow: ellipsis;
-}
-.player.react .player-body {
-  animation: playerReact 0.4s ease;
-}
-@keyframes playerReact {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.4) translateY(-6px); }
-  100% { transform: scale(1); }
-}
-.goalkeeper { z-index: 11; }
-.goalkeeper .player-body { font-size: 26px; }
-
-/* ─── Sidebar ─── */
-#sidebar {
-  position: absolute; right: 0; top: 0; bottom: 0; width: 180px;
-  background: rgba(0,0,0,0.75); padding: 12px 10px;
-  display: flex; flex-direction: column; gap: 8px;
-  border-left: 1px solid rgba(255,255,255,0.08); z-index: 20;
-}
-.s-label { color: rgba(255,255,255,0.4); font-size: 10px; letter-spacing:1.5px; text-transform:uppercase; }
-.mvp-card {
-  background: rgba(255,215,0,0.1); border-radius: 8px;
-  border: 1px solid rgba(255,215,0,0.2); padding: 8px 9px;
-}
-.mvp-team  { color:#ffd700; font-size:10px; font-weight:700; }
-.mvp-user  { color:#fff; font-size:12px; font-weight:600; margin-top:2px; }
-.mvp-coins { color:rgba(255,255,255,0.5); font-size:10px; }
-.lb-row {
-  display:flex; align-items:center; gap:6px;
-  background:rgba(255,255,255,0.05); border-radius:6px; padding:5px 7px;
-}
-.lb-pos   { color:rgba(255,255,255,0.3); font-size:10px; width:13px; }
-.lb-flag  { font-size:14px; }
-.lb-name  { flex:1; color:#fff; font-size:11px; font-weight:600; }
-.lb-coins { color:rgba(255,255,255,0.4); font-size:10px; }
-
-/* ─── Flash de gol ─── */
-#goal-flash {
-  display:none; position:absolute; inset:0; z-index:30;
-  align-items:center; justify-content:center; flex-direction:column; gap:8px;
-  background:rgba(0,0,0,0.58);
-}
-#goal-flash.show { display:flex; }
-#goal-text { font-size:68px; color:#fff; font-weight:900; text-shadow:0 0 40px rgba(255,215,0,0.9); }
-#goal-sub  { color:#ffd700; font-size:20px; font-weight:700; }
-#goal-user { color:rgba(255,255,255,0.8); font-size:14px; }
-
-/* ─── Fever ─── */
-#fever-border {
-  display:none; position:absolute; inset:0; pointer-events:none;
-  border:4px solid #e63; z-index:25;
-  animation: feverAnim 0.5s infinite alternate;
-}
-#fever-border.active { display:block; }
-@keyframes feverAnim { from{opacity:0.2;} to{opacity:1;} }
-
-/* ─── Feed ─── */
-#feed {
-  background:rgba(0,0,0,0.72); padding:7px 16px;
-  min-height:52px; display:flex; flex-direction:column;
-  gap:2px; border-top:1px solid rgba(255,255,255,0.07); overflow:hidden; z-index:20;
-}
-.feed-msg { color:rgba(255,255,255,0.8); font-size:11px; line-height:1.6; }
-.feed-msg b { color:#fff; }
-.feed-msg.hl { color:#ffd700; }
-
-/* ─── WS status ─── */
-#ws-status {
-  position:absolute; bottom:60px; left:10px; z-index:30;
-  font-size:10px; color:rgba(255,255,255,0.35);
-  display:flex; align-items:center; gap:4px;
-}
-#ws-dot { width:6px; height:6px; border-radius:50%; background:#555; transition:background 0.4s; }
-#ws-dot.connected    { background:#4c4; }
-#ws-dot.disconnected { background:#c44; }
-</style>
+<title>TikTok Football Tournament</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div id="app">
   <div id="fever-border"></div>
 
   <!-- Gradas -->
-  <div id="stands"></div>
+  <div id="stands">
+    <div class="stands-section left"></div>
+    <div class="stands-section right"></div>
+  </div>
 
   <!-- Topbar -->
   <div id="topbar">
     <div class="team-side">
       <span id="flag-a" class="flag">🇦🇷</span>
-      <span id="name-a" class="team-name">Argentina</span>
+      <div class="team-info">
+        <span id="name-a" class="team-name">Argentina</span>
+      </div>
       <div class="score-box" id="score-a">0</div>
     </div>
+
     <div id="timer-wrap">
       <div id="timer-badge">⏱ <span id="timer">10:00</span></div>
-      <div id="fever-badge">⚡ FIEBRE x2</div>
+      <div id="fever-badge">⚡ <span class="text-es">FIEBRE</span><span class="text-en">FEVER</span> x2</div>
     </div>
+
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLanguage('es')">ES</button>
+      <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+    </div>
+
     <div class="team-side" style="flex-direction:row-reverse">
       <span id="flag-b" class="flag">🇧🇷</span>
-      <span id="name-b" class="team-name">Brasil</span>
+      <div class="team-info">
+        <span id="name-b" class="team-name">Brasil</span>
+      </div>
       <div class="score-box" id="score-b">0</div>
     </div>
   </div>
 
-  <!-- Campo -->
-  <div id="field">
-    <div id="field-lines">
-      <div class="fline" id="line-center"></div>
-      <div id="circle-center"></div>
-      <div class="fline" id="line-top"></div>
-      <div class="fline" id="line-bottom"></div>
-    </div>
+  <!-- Field Container -->
+  <div id="field-container">
+    <!-- Campo -->
+    <div id="field-wrapper">
+      <div id="field">
+        <div id="field-lines">
+          <div class="fline" id="line-center"></div>
+          <div id="circle-center"></div>
+          <div class="fline" id="line-top"></div>
+          <div class="fline" id="line-bottom"></div>
+        </div>
 
-    <!-- Áreas de penalti -->
-    <div class="penalty-box left"></div>
-    <div class="penalty-box right"></div>
+        <!-- Banderas grandes -->
+        <div class="goal-banner left" id="banner-left">🇦🇷</div>
+        <div class="goal-banner right" id="banner-right">🇧🇷</div>
 
-    <!-- Portería izquierda (equipo B defiende) -->
-    <div class="goal-wrap left" id="goal-left">
-      <div class="goal-post left">
-        <div class="goal-net"></div>
-        <span class="goal-flag top" id="flag-goal-left-t">🇧🇷</span>
-        <span class="goal-flag bot" id="flag-goal-left-b">🇧🇷</span>
+        <div class="penalty-box left"></div>
+        <div class="penalty-box right"></div>
+
+        <div class="goal-wrap left" id="goal-left">
+          <div class="goal-post left">
+            <div class="goal-net"></div>
+            <span class="goal-flag top" id="flag-goal-left-t">🇦🇷</span>
+            <span class="goal-flag bot" id="flag-goal-left-b">🇦🇷</span>
+          </div>
+        </div>
+
+        <div class="goal-wrap right" id="goal-right">
+          <div class="goal-post right">
+            <div class="goal-net"></div>
+            <span class="goal-flag top" id="flag-goal-right-t">🇧🇷</span>
+            <span class="goal-flag bot" id="flag-goal-right-b">🇧🇷</span>
+          </div>
+        </div>
+
+        <div id="ball">⚽</div>
+
+        <div id="goal-flash">
+          <div id="goal-text">⚽ <span class="text-es">GOL!</span><span class="text-en">GOAL!</span></div>
+          <div id="goal-sub"></div>
+          <div id="goal-user"></div>
+        </div>
       </div>
-    </div>
-
-    <!-- Portería derecha (equipo A defiende) -->
-    <div class="goal-wrap right" id="goal-right">
-      <div class="goal-post right">
-        <div class="goal-net"></div>
-        <span class="goal-flag top" id="flag-goal-right-t">🇦🇷</span>
-        <span class="goal-flag bot" id="flag-goal-right-b">🇦🇷</span>
-      </div>
-    </div>
-
-    <!-- Balón -->
-    <div id="ball">⚽</div>
-
-    <!-- Animación de gol -->
-    <div id="goal-flash">
-      <div id="goal-text">⚽ GOL!</div>
-      <div id="goal-sub">Argentina anota</div>
-      <div id="goal-user"></div>
     </div>
 
     <!-- Sidebar -->
     <div id="sidebar">
-      <div class="s-label">MVP del partido</div>
+      <div class="s-label"><span class="text-es">MVP del partido</span><span class="text-en">Match MVP</span></div>
       <div class="mvp-card">
-        <div class="mvp-team" id="mvp-a-label">🏆 Rey de Argentina</div>
-        <div class="mvp-user"  id="mvp-a-user">Esperando...</div>
-        <div class="mvp-coins" id="mvp-a-coins">0 monedas</div>
+        <div class="mvp-team" id="mvp-a-label">🏆 <span class="text-es">Rey de</span><span class="text-en">Champion</span></div>
+        <div class="mvp-user" id="mvp-a-user"><span class="text-es">Esperando...</span><span class="text-en">Waiting...</span></div>
+        <div class="mvp-coins" id="mvp-a-coins">0 🪙</div>
       </div>
       <div class="mvp-card">
-        <div class="mvp-team" id="mvp-b-label">🏆 Rey de Brasil</div>
-        <div class="mvp-user"  id="mvp-b-user">Esperando...</div>
-        <div class="mvp-coins" id="mvp-b-coins">0 monedas</div>
+        <div class="mvp-team" id="mvp-b-label">🏆 <span class="text-es">Rey de</span><span class="text-en">Champion</span></div>
+        <div class="mvp-user" id="mvp-b-user"><span class="text-es">Esperando...</span><span class="text-en">Waiting...</span></div>
+        <div class="mvp-coins" id="mvp-b-coins">0 🪙</div>
       </div>
-      <div class="s-label" style="margin-top:4px">Ranking</div>
+      <div class="s-label"><span class="text-es">Ranking</span><span class="text-en">Ranking</span></div>
       <div id="leaderboard"></div>
     </div>
   </div>
 
   <!-- Feed -->
   <div id="feed">
-    <div class="feed-msg">🎮 Overlay listo — conectando al servidor...</div>
+    <div class="feed-msg">🎮 <span class="text-es">Overlay listo — esperando control...</span><span class="text-en">Overlay ready — waiting for control...</span></div>
   </div>
 
   <div id="ws-status">
     <div id="ws-dot"></div>
-    <span id="ws-label">Conectando...</span>
+    <span id="ws-label"><span class="text-es">Conectando...</span><span class="text-en">Connecting...</span></span>
   </div>
 </div>
 
-<script>
-// ─── Config ───────────────────────────────────────────────────────────────────
-const WS_URL   = "ws://localhost:8765";
-const SIDEBAR_W = 180;
-
-// ─── Estado local ─────────────────────────────────────────────────────────────
-let socket        = null;
-let timeLeft      = 600;
-let timerInterval = null;
-let teamA = { name:"Argentina", flag:"🇦🇷", color:"#75aadb", shirt:"🥷" };
-let teamB = { name:"Brasil",    flag:"🇧🇷", color:"#009c3b", shirt:"🧑" };
-
-// ─── Gradas ───────────────────────────────────────────────────────────────────
-const FAN_EMOJIS_A = ["🇦🇷","🙌","🙋","🧣","📣","👏","🎉"];
-const FAN_EMOJIS_B = ["🇧🇷","🙌","🙋","🧣","📣","👏","🎊"];
-
-function buildStands() {
-  const stands = document.getElementById("stands");
-  stands.innerHTML = "";
-  const total = 48;
-  for (let i = 0; i < total; i++) {
-    const isA = i < total / 2;
-    const pool = isA ? FAN_EMOJIS_A : FAN_EMOJIS_B;
-    const emoji = pool[Math.floor(Math.random() * pool.length)];
-    const div = document.createElement("span");
-    div.className = "fan";
-    div.id = "fan-" + i;
-    div.textContent = emoji;
-    div.style.setProperty("--delay", (Math.random() * 2) + "s");
-    div.style.setProperty("--sway", (Math.random() > 0.5 ? "" : "-") + Math.floor(Math.random()*8+3) + "deg");
-    div.style.fontSize = (14 + Math.floor(Math.random()*6)) + "px";
-    stands.appendChild(div);
-  }
-}
-
-function celebrateFans(teamId) {
-  const isA = teamId === "team_a";
-  const total = 48;
-  const start = isA ? 0 : total / 2;
-  const end   = isA ? total / 2 : total;
-  for (let i = start; i < end; i++) {
-    const el = document.getElementById("fan-" + i);
-    if (!el) continue;
-    el.classList.add("celebrate");
-    setTimeout(() => el.classList.remove("celebrate"), 3000);
-  }
-}
-
-// ─── Jugadores ────────────────────────────────────────────────────────────────
-// Posiciones base en % del campo (sin sidebar)
-// team_a ataca hacia la derecha, team_b hacia la izquierda
-const BASE_POSITIONS = {
-  // Porteros
-  gk_a: { x: 92, y: 50 },   // defiende portería derecha
-  gk_b: { x: 8,  y: 50 },   // defiende portería izquierda
-  // Jugadores de campo equipo A
-  f_a1: { x: 30, y: 30 },
-  f_a2: { x: 35, y: 60 },
-  f_a3: { x: 55, y: 45 },
-  // Jugadores de campo equipo B
-  f_b1: { x: 70, y: 30 },
-  f_b2: { x: 65, y: 60 },
-  f_b3: { x: 45, y: 55 },
-};
-
-// Camisetas por equipo (colores aproximados con emojis)
-const SHIRT_A = "🟦";   // azul → Argentina
-const SHIRT_B = "🟨";   // amarillo → Brasil
-
-const PLAYER_CONFIGS = [
-  { id:"gk_a",  team:"team_a", isGK:true,  shirt:"🧤", label:"Portero" },
-  { id:"gk_b",  team:"team_b", isGK:true,  shirt:"🧤", label:"Portero" },
-  { id:"f_a1",  team:"team_a", isGK:false, shirt:"👕", label:"" },
-  { id:"f_a2",  team:"team_a", isGK:false, shirt:"👕", label:"" },
-  { id:"f_a3",  team:"team_a", isGK:false, shirt:"👕", label:"" },
-  { id:"f_b1",  team:"team_b", isGK:false, shirt:"👕", label:"" },
-  { id:"f_b2",  team:"team_b", isGK:false, shirt:"👕", label:"" },
-  { id:"f_b3",  team:"team_b", isGK:false, shirt:"👕", label:"" },
-];
-
-function buildPlayers() {
-  PLAYER_CONFIGS.forEach(cfg => {
-    if (document.getElementById("player-" + cfg.id)) return;
-    const div = document.createElement("div");
-    div.className = "player" + (cfg.isGK ? " goalkeeper" : "");
-    div.id = "player-" + cfg.id;
-    const shirt = cfg.team === "team_a"
-      ? (cfg.isGK ? "🟧" : "🟦")
-      : (cfg.isGK ? "🟫" : "🟨");
-    div.innerHTML = `
-      <div class="player-body">${shirt}</div>
-      <div class="player-name" id="plabel-${cfg.id}">${cfg.label}</div>
-    `;
-    document.getElementById("field").appendChild(div);
-  });
-  updateAllPlayerPositions();
-}
-
-function getFieldDims() {
-  const field = document.getElementById("field");
-  return {
-    w: field.clientWidth - SIDEBAR_W,
-    h: field.clientHeight,
-  };
-}
-
-function placePlayer(id, xPct, yPct) {
-  const el = document.getElementById("player-" + id);
-  if (!el) return;
-  const { w, h } = getFieldDims();
-  el.style.left = (xPct / 100 * w - 14) + "px";
-  el.style.top  = (yPct / 100 * h - 16) + "px";
-}
-
-function updateAllPlayerPositions() {
-  Object.entries(BASE_POSITIONS).forEach(([id, pos]) => {
-    placePlayer(id, pos.x, pos.y);
-  });
-}
-
-// Portero sigue el balón verticalmente
-function moveGoalkeepers(ballY) {
-  const gkRange = 20; // cuánto se mueve desde el centro
-  const clampedY = Math.max(20, Math.min(80, ballY));
-
-  // gk_a defiende la portería derecha — sigue el balón
-  BASE_POSITIONS.gk_a.y = clampedY;
-  placePlayer("gk_a", BASE_POSITIONS.gk_a.x, clampedY);
-
-  // gk_b defiende la portería izquierda
-  BASE_POSITIONS.gk_b.y = clampedY;
-  placePlayer("gk_b", BASE_POSITIONS.gk_b.x, clampedY);
-}
-
-// Jugadores de campo reaccionan si el balón está cerca
-function reactNearbyPlayers(ballX, ballY) {
-  const fieldPlayers = ["f_a1","f_a2","f_a3","f_b1","f_b2","f_b3"];
-  fieldPlayers.forEach(id => {
-    const pos = BASE_POSITIONS[id];
-    const dist = Math.sqrt(Math.pow(ballX - pos.x, 2) + Math.pow(ballY - pos.y, 2));
-    if (dist < 18) {
-      const el = document.getElementById("player-" + id);
-      if (el) {
-        el.classList.add("react");
-        setTimeout(() => el.classList.remove("react"), 500);
-        // El jugador se mueve ligeramente hacia el balón
-        pos.x += (ballX - pos.x) * 0.15;
-        pos.y += (ballY - pos.y) * 0.15;
-        placePlayer(id, pos.x, pos.y);
-      }
-    }
-  });
-}
-
-// Muestra el nombre del donador sobre el jugador más cercano al balón
-function showDonorOnPlayer(username, teamId, ballX, ballY) {
-  const ids = teamId === "team_a"
-    ? ["f_a1","f_a2","f_a3"]
-    : ["f_b1","f_b2","f_b3"];
-
-  // Elige el jugador del equipo más cercano al balón
-  let closest = ids[0], minDist = Infinity;
-  ids.forEach(id => {
-    const pos = BASE_POSITIONS[id];
-    const d = Math.sqrt(Math.pow(ballX - pos.x,2) + Math.pow(ballY - pos.y,2));
-    if (d < minDist) { minDist = d; closest = id; }
-  });
-
-  const label = document.getElementById("plabel-" + closest);
-  if (label) {
-    label.textContent = username;
-    setTimeout(() => { label.textContent = ""; }, 3500);
-  }
-}
-
-// Resetea posiciones tras un gol
-function resetPlayerPositions() {
-  Object.keys(BASE_POSITIONS).forEach(id => {
-    const orig = {
-      gk_a:{x:92,y:50}, gk_b:{x:8,y:50},
-      f_a1:{x:30,y:30}, f_a2:{x:35,y:60}, f_a3:{x:55,y:45},
-      f_b1:{x:70,y:30}, f_b2:{x:65,y:60}, f_b3:{x:45,y:55},
-    };
-    BASE_POSITIONS[id].x = orig[id].x;
-    BASE_POSITIONS[id].y = orig[id].y;
-    placePlayer(id, orig[id].x, orig[id].y);
-  });
-}
-
-// ─── Balón ────────────────────────────────────────────────────────────────────
-function moveBall(xPct, yPct) {
-  const { w, h } = getFieldDims();
-  const ball = document.getElementById("ball");
-  ball.style.left = (xPct / 100 * w) + "px";
-  ball.style.top  = (yPct / 100 * h) + "px";
-  moveGoalkeepers(yPct);
-  reactNearbyPlayers(xPct, yPct);
-}
-
-function kickBallAnim() {
-  const ball = document.getElementById("ball");
-  ball.classList.add("kicked");
-  setTimeout(() => ball.classList.remove("kicked"), 550);
-}
-
-// ─── Banderas en porterías ────────────────────────────────────────────────────
-function updateGoalFlags() {
-  // La portería izquierda la defiende el equipo B
-  document.getElementById("flag-goal-left-t").textContent  = teamB.flag;
-  document.getElementById("flag-goal-left-b").textContent  = teamB.flag;
-  // La portería derecha la defiende el equipo A
-  document.getElementById("flag-goal-right-t").textContent = teamA.flag;
-  document.getElementById("flag-goal-right-b").textContent = teamA.flag;
-}
-
-// ─── WebSocket ────────────────────────────────────────────────────────────────
-function connect() {
-  socket = new WebSocket(WS_URL);
-
-  socket.onopen = () => {
-    setStatus("connected", "Conectado");
-    addFeed("✅ Servidor conectado. ¡El partido puede comenzar!");
-    startTimer();
-  };
-
-  socket.onmessage = (e) => {
-    try { handleMessage(JSON.parse(e.data)); }
-    catch(err) { console.error(err); }
-  };
-
-  socket.onclose = () => {
-    setStatus("disconnected", "Sin conexión — reintentando...");
-    clearInterval(timerInterval);
-    setTimeout(connect, 3000);
-  };
-}
-
-function handleMessage(msg) {
-  // Actualiza equipos
-  if (msg.team_a) {
-    teamA = msg.team_a;
-    document.getElementById("flag-a").textContent = teamA.flag;
-    document.getElementById("name-a").textContent = teamA.name;
-    document.getElementById("mvp-a-label").textContent = "🏆 Rey de " + teamA.name;
-    updateGoalFlags();
-  }
-  if (msg.team_b) {
-    teamB = msg.team_b;
-    document.getElementById("flag-b").textContent = teamB.flag;
-    document.getElementById("name-b").textContent = teamB.name;
-    document.getElementById("mvp-b-label").textContent = "🏆 Rey de " + teamB.name;
-    updateGoalFlags();
-  }
-
-  if (msg.type === "system") { addFeed("📡 " + msg.message); return; }
-
-  // Marcador
-  document.getElementById("score-a").textContent = msg.score_a ?? 0;
-  document.getElementById("score-b").textContent = msg.score_b ?? 0;
-
-  // Balón
-  if (msg.ball_x !== undefined) {
-    moveBall(msg.ball_x, msg.ball_y);
-    if (msg.type === "shot" || msg.type === "goal") kickBallAnim();
-  }
-
-  // Donador aparece sobre un jugador
-  if (msg.username && msg.team_id) {
-    showDonorOnPlayer(msg.username, msg.team_id, msg.ball_x, msg.ball_y);
-  }
-
-  // Fiebre
-  if (msg.fever_triggered) activateFever();
-  if (!msg.fever) {
-    document.getElementById("fever-badge").classList.remove("active");
-    document.getElementById("fever-border").classList.remove("active");
-  }
-
-  // MVP
-  if (msg.mvp_a?.user) {
-    document.getElementById("mvp-a-user").textContent  = msg.mvp_a.user;
-    document.getElementById("mvp-a-coins").textContent = msg.mvp_a.coins + " monedas";
-  }
-  if (msg.mvp_b?.user) {
-    document.getElementById("mvp-b-user").textContent  = msg.mvp_b.user;
-    document.getElementById("mvp-b-coins").textContent = msg.mvp_b.coins + " monedas";
-  }
-
-  const tName = msg.team_id === "team_a" ? teamA.name : teamB.name;
-  const tFlag = msg.team_id === "team_a" ? teamA.flag : teamB.flag;
-
-  if (msg.type === "goal") {
-    flashGoal(tName, tFlag, msg.username);
-    flashScore(msg.team_id);
-    celebrateFans(msg.team_id);
-    resetPlayerPositions();
-    addFeed(`⚽ <b>GOL de ${tName}!</b> ${msg.username} mandó ${msg.gift_name}`, true);
-  } else if (msg.type === "shot") {
-    addFeed(`💥 Disparo — ${msg.username} con ${msg.gift_name} (${msg.coins}🪙)${msg.multiplier>1?" ⚡x2":""}`);
-  } else if (msg.type === "push") {
-    addFeed(`👟 ${msg.username} empujó con ${msg.gift_name}`);
-  }
-
-  if (msg.mvp_dethroned) {
-    addFeed(`👑 <b>${msg.username}</b> destronó a ${msg.mvp_dethroned} en ${tName}!`, true);
-  }
-}
-
-// ─── UI helpers ───────────────────────────────────────────────────────────────
-function flashGoal(teamName, teamFlag, username) {
-  const flash = document.getElementById("goal-flash");
-  document.getElementById("goal-text").textContent = teamFlag + " GOL!";
-  document.getElementById("goal-sub").textContent  = teamName + " anota";
-  document.getElementById("goal-user").textContent = "Gracias a " + username;
-  flash.classList.add("show");
-  setTimeout(() => flash.classList.remove("show"), 2800);
-}
-
-function flashScore(teamId) {
-  const el = document.getElementById(teamId === "team_a" ? "score-a" : "score-b");
-  el.classList.add("flash");
-  setTimeout(() => el.classList.remove("flash"), 900);
-}
-
-function activateFever() {
-  document.getElementById("fever-badge").classList.add("active");
-  document.getElementById("fever-border").classList.add("active");
-  addFeed("⚡ MODO FIEBRE — regalos x2 por 60 segundos!", true);
-}
-
-function addFeed(html, hl=false) {
-  const feed = document.getElementById("feed");
-  const div  = document.createElement("div");
-  div.className = "feed-msg" + (hl ? " hl" : "");
-  div.innerHTML = html;
-  feed.appendChild(div);
-  while (feed.children.length > 3) feed.removeChild(feed.firstChild);
-}
-
-function setStatus(state, label) {
-  document.getElementById("ws-dot").className   = state;
-  document.getElementById("ws-label").textContent = label;
-}
-
-function startTimer() {
-  if (timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    if (timeLeft <= 0) { clearInterval(timerInterval); document.getElementById("timer").textContent = "FIN"; return; }
-    timeLeft--;
-    const m = Math.floor(timeLeft/60).toString().padStart(2,"0");
-    const s = (timeLeft%60).toString().padStart(2,"0");
-    document.getElementById("timer").textContent = m+":"+s;
-  }, 1000);
-}
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
-buildStands();
-updateGoalFlags();
-setTimeout(() => {
-  buildPlayers();
-  moveBall(50, 50);
-}, 100);
-connect();
-window.addEventListener("resize", () => {
-  updateAllPlayerPositions();
-  moveBall(50, 50);
-});
-</script>
+<script src="app.js"></script>
 </body>
 </html>
